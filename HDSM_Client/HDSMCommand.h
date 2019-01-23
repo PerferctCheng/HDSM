@@ -33,9 +33,9 @@ private:
 	HINT32		m_lExpireMinutes;
 	string		m_strPassword;
 	HBOOL		m_bValid;
-	HUINT32 m_ulShowKeysLimit;
-	HUINT32 m_ulStartOffset;
-	HUINT32 m_ulEndOffset;
+	HUINT32		m_ulShowKeysLimit;
+	HUINT32		m_ulStartOffset;
+	HUINT32		m_ulEndOffset;
 	OPRERATE_TYPE m_ulTestOperate;
 };
 

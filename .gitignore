@@ -36,3 +36,6 @@ ipch/
 *.user
 *.sdf
 *.opensdf
+
+# VS Build files
+Debug/

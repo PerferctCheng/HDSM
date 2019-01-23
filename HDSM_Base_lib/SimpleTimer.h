@@ -13,6 +13,6 @@ private:
 	virtual void run();
 private:
 	ISimpleTimerHandler *m_pHandler;
-	HUINT32 m_uiElaspeMs;
+	HUINT32		m_uiElaspeMs;
 };
 

@@ -24,9 +24,9 @@ public:
 	};
 private:
 #ifdef WIN32
-	HINT32			m_iCurLevel;
+	HINT32		m_iCurLevel;
 	SimpleLock	m_lock;
-	HINT32			m_iReadCount;   
+	HINT32		m_iReadCount;   
 	HANDLE		m_hUnlockEvent; 
 	HANDLE		m_hAccessMutex;
 #else

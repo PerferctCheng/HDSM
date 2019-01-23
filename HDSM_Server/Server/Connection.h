@@ -45,7 +45,7 @@ private:
 	BaseSocket		m_sock;
 	queue<Response> m_lstReponses;
 	SimpleLock		m_lock;
-	HUINT32	m_nIndexInConnectionPool;
+	HUINT32			m_nIndexInConnectionPool;
 	HBOOL			m_bCloseWait;
 private:
 	SimpleLock		m_SendRespondRight;

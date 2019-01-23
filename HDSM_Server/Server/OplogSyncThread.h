@@ -17,9 +17,9 @@ private:
 	HBOOL process_sync_data(HUINT64 ullAckIndex, const HCHAR *pszBuf, HUINT32 nBufLen);
 	HBOOL process_one_op_data(const HCHAR *pszBuf, HUINT32 nBufLen);
 private:
-	ITaskCenter		*m_pTaskCenter;
+	ITaskCenter	*m_pTaskCenter;
 	OplogSynchronizer *m_pSynchronizer;
-	HUINT32	m_uiSyncPeriod;
-	HUINT32	m_ulToatlOps;
+	HUINT32		m_uiSyncPeriod;
+	HUINT32		m_ulToatlOps;
 };
 

@@ -28,6 +28,6 @@ private:
 #endif
 protected:
 	HUINT32	m_uiThreadId;
-	HBOOL			m_bStopped;
+	HBOOL	m_bStopped;
 };
 

@@ -20,8 +20,8 @@ public:
 	string get_cur_format_result_info();
 private:
 	HDSMCommand *m_pCommand;
-	HDSMClient *m_pClient;
-	Result m_Result;
+	HDSMClient	*m_pClient;
+	Result		m_Result;
 	TestThread *m_pThd;
 };
 

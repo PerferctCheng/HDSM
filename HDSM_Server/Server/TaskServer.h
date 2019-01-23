@@ -35,7 +35,7 @@ private:
 	HBOOL read_bytes(Connection *pConn);
 	HBOOL send_bytes(Connection *pConn);
 private:
-	HUINT16	m_ListenningPort;
+	HUINT16			m_ListenningPort;
 	BaseSocket		m_ListeningSocket;
 	fd_set			m_fdRead;//, m_fdException;
 	vector<Connection *> m_ClientConns;
@@ -44,7 +44,7 @@ private:
 	ConnectionPool	m_ConnPool;
 	HUINT64 m_ullRecvedTaskCount;
 	HUINT64 m_ullFinishedTaskCount;
-	HINT32				m_nMaxFD;
+	HINT32			m_nMaxFD;
 private:
 	SimpleTimer		*m_pTimer;
 };

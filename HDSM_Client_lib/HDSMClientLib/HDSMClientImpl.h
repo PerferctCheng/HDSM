@@ -28,13 +28,13 @@ public:
 	Result shutdown(const string &password);
 	Result keys(HUINT32 limit);
 public:
-	BaseSocket		m_sock;
-	string			m_strSrvIP;
-	HUINT16	m_usSrvPort;
-	HINT32				m_iTimeout;
-	HUINT32	m_ulMaxKeyLen;
-	HUINT32	m_ulMaxValueLen;
-	HBOOL			m_bValid;
-	HUINT32	m_ulCurSN;
+	BaseSocket	m_sock;
+	string		m_strSrvIP;
+	HUINT16		m_usSrvPort;
+	HINT32		m_iTimeout;
+	HUINT32		m_ulMaxKeyLen;
+	HUINT32		m_ulMaxValueLen;
+	HBOOL		m_bValid;
+	HUINT32		m_ulCurSN;
 };
 

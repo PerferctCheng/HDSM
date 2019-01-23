@@ -156,30 +156,30 @@ string ConfigureMgr::get_local_configure_file()
 string ConfigureMgr::get_data_path()
 {
 #ifdef WIN32
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "data_path", "D:/HDSM/data");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "data_path", "D:/HDSM/data");
 #else
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "data_path", "/root/HDSM/data");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "data_path", "/root/HDSM/data");
 #endif
 }
 
 HUINT32 ConfigureMgr::get_max_invalid_keys()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_max_invalid_keys", 100000);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_max_invalid_keys", 100000);
 }
 
 HUINT32 ConfigureMgr::get_max_key_length()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_max_key_length", 128);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_max_key_length", 128);
 }
 
 HUINT32 ConfigureMgr::get_max_value_length()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_max_value_length", 128);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_max_value_length", 128);
 }
 
 HUINT32 ConfigureMgr::get_shard_count()
 {
-	HUINT32 cnt = GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_shard_count", 256);
+	HUINT32 cnt = GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_shard_count", 256);
 	if (cnt > 1024) cnt = 1024;
 	if (cnt < 16) cnt = 16;
 	cnt = cnt / 16 * 16;
@@ -188,95 +188,95 @@ HUINT32 ConfigureMgr::get_shard_count()
 
 HUINT32 ConfigureMgr::get_print_status_info_period()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "srv_print_status_info_period", 60);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "srv_print_status_info_period", 60);
 }
 
 HUINT16 ConfigureMgr::get_listenning_port()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "srv_listen_port", 9988);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "srv_listen_port", 9988);
 }
 
 HUINT32 ConfigureMgr::get_work_threads_count()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "srv_work_threads_count", Utils::get_cpu_count()*2);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "srv_work_threads_count", Utils::get_cpu_count()*2);
 }
 
 HUINT32 ConfigureMgr::get_init_threads_count()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_init_threads_count", Utils::get_cpu_count());
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_init_threads_count", Utils::get_cpu_count());
 }
 
 HUINT32 ConfigureMgr::get_syslog_level()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "syslog_level", 1);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "syslog_level", 1);
 }
 
 string ConfigureMgr::get_oplog_path()
 {
 #ifdef WIN32
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "oplog_path", "D:/HDSM/oplog");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "oplog_path", "D:/HDSM/oplog");
 #else
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "oplog_path", "/root/HDSM/oplog");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "oplog_path", "/root/HDSM/oplog");
 #endif
 }
 
 string ConfigureMgr::get_auth_password()
 {
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "srv_auth_password", "");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "srv_auth_password", "");
 }
 
 string ConfigureMgr::get_syslog_path()
 {
 #ifdef WIN32
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "syslog_path", "D:/HDSM/syslog");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "syslog_path", "D:/HDSM/syslog");
 #else
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "syslog_path", "/root/HDSM/syslog");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "syslog_path", "/root/HDSM/syslog");
 #endif
 }
 
 HUINT32 ConfigureMgr::get_syslog_max_size()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "syslog_max_size", 1000);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "syslog_max_size", 1000);
 }
 
 HUINT32 ConfigureMgr::get_trim_expired_keys_period()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_trim_expired_keys_period", 60);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_trim_expired_keys_period", 60);
 }
 
 HUINT32 ConfigureMgr::get_oplog_min_split_period()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "oplog_min_split_period", 5);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "oplog_min_split_period", 5);
 }
 
 HUINT32 ConfigureMgr::get_oplog_max_spilt_count()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "oplog_max_split_count", 1000);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "oplog_max_split_count", 1000);
 }
 
 HUINT32 ConfigureMgr::get_hour_for_load_expired_keys_cache()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "data_hour_for_load_expired_keys_cache", 3);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_hour_for_load_expired_keys_cache", 3);
 }
 
 HUINT32 ConfigureMgr::get_oplog_sync_period()
 {
-	return GetKeyInt(Global::g_strConfigureFilePath, "configure", "oplog_sync_period", 3);
+	return GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "oplog_sync_period", 3);
 }
 
 HUINT32 ConfigureMgr::get_server_mode()
 {
-	string mode = GetKeyString(Global::g_strConfigureFilePath, "configure", "srv_server_mode", "alone");
+	string mode = GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "srv_server_mode", "alone");
 	return (mode.compare("mirror") == 0 ? 1 : 0);
 }
 
 string ConfigureMgr::get_mirror_peer_addr()
 {
-	return GetKeyString(Global::g_strConfigureFilePath, "configure", "srv_mirror_peer_addr", "");
+	return GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "srv_mirror_peer_addr", "");
 }
 
 HBOOL ConfigureMgr::get_enable_high_level_index()
 {
-	string value = GetKeyString(Global::g_strConfigureFilePath, "configure", "data_enable_high_level_index", "false");
+	string value = GetKeyString(Global::CONFIGURE_FILE_PATH, "configure", "data_enable_high_level_index", "false");
 	return (value.compare("true") == 0);
 }

@@ -65,9 +65,9 @@ private:
 	HINT32		m_lStartOffset;//-1标识无效
 	HINT32		m_lFileEndPos;
 	FILE		*m_fpDataFile;
-	HUINT32 m_ulVersionCode;
-	HUINT32 m_ulLength;
-	HUINT32 m_ulInvalidLength;
+	HUINT32		m_ulVersionCode;
+	HUINT32		m_ulLength;
+	HUINT32		m_ulInvalidLength;
 	RWLock		m_RWLock;
 	HBOOL		m_bValid;
 	HBOOL		m_bInitialized;

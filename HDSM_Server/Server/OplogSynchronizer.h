@@ -20,9 +20,9 @@ private:
 	string get_ack_buffer(HUINT64 ullAckIndex);
 	string get_sync_buffer();
 private:
-	BaseSocket		m_SyncSocket;
-	HUINT32	m_ulAckSN;
-	HUINT32	m_ulSyncSN;
-	string			m_strMirrorPeerAddr;
+	BaseSocket	m_SyncSocket;
+	HUINT32		m_ulAckSN;
+	HUINT32		m_ulSyncSN;
+	string		m_strMirrorPeerAddr;
 };
 

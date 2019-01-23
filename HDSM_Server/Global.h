@@ -14,7 +14,7 @@ public:
 		SERVER_MODE_MIRROR,
 	};
 public:
-	static string g_strConfigureFilePath;
+	static string CONFIGURE_FILE_PATH;
 	static HUINT32 MAX_KEY_LENGTH;
 	static HUINT32 MAX_VALUE_LENGTH;
 	static HUINT32 VERSION_CODE;

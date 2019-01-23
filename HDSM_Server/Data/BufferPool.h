@@ -17,10 +17,10 @@ public:
 	virtual void *get(HUINT32 iIndex);
 	virtual HUINT32 size();
 private:
-	HUINT32	m_nSize;
-	HUINT32	m_nCount;
-	HCHAR			*m_pBuffer;
+	HUINT32		m_nSize;
+	HUINT32		m_nCount;
+	HCHAR		*m_pBuffer;
 	queue<HUINT32> m_unused;
-	SimpleLock		m_lock;
+	SimpleLock	m_lock;
 };
 

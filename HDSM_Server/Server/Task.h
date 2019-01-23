@@ -47,16 +47,16 @@ public:
 public:
 	string buffer();
 private:
-	HBOOL			m_bValid;
+	HBOOL	m_bValid;
 private:
 	HUINT32	m_bRet;
-	string			m_strKey;
-	string			m_strValue;
+	string	m_strKey;
+	string	m_strValue;
 	HUINT32	m_ulLength;
 	HUINT32	m_ulOperate;
 	HUINT32	m_ulSN;
-	HINT32			m_lExpireMinutes;
-	string			m_strPassword;
+	HINT32	m_lExpireMinutes;
+	string	m_strPassword;
 private:
 	Connection		*m_pConn;
 private:
@@ -67,9 +67,9 @@ private:
 	HUINT64 m_ullTimeStamp;
 private:
 	HUINT64 m_ullAckIndex;
-	string			m_strSyncData;
+	string	m_strSyncData;
 private:
-	string			m_strErrInfo;
+	string	m_strErrInfo;
 	map<string, KeyValueInfo> m_KeysInfo;
 	HUINT32	m_ulShowKeysLimit;
 };

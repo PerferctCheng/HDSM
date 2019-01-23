@@ -33,13 +33,13 @@ public:
 	HINT32 get_expire_minutes() const;
 private:
 	HUINT8	m_ucFlag;
-	HINT32			m_ulNextPtr;
-	HINT32			m_ulPrePtr;
-	HINT32			m_ulSelfPtr;
-	string			m_strKey;
-	string			m_strValue;
-	HBOOL			m_bValid;
+	HINT32	m_ulNextPtr;
+	HINT32	m_ulPrePtr;
+	HINT32	m_ulSelfPtr;
+	string	m_strKey;
+	string	m_strValue;
+	HBOOL	m_bValid;
 	HUINT64 m_ullTimestamp;
-	HINT32			m_lExpireMinutes;
+	HINT32	m_lExpireMinutes;
 };
 

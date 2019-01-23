@@ -1,6 +1,6 @@
 #include "Global.h"
 
-string Global::g_strConfigureFilePath = ConfigureMgr::get_local_configure_file();
+string Global::CONFIGURE_FILE_PATH = ConfigureMgr::get_local_configure_file();
 HUINT32 Global::MAX_KEY_LENGTH = ConfigureMgr::get_max_key_length() + 9;
 HUINT32 Global::MAX_VALUE_LENGTH = ConfigureMgr::get_max_value_length();
 HUINT32 Global::VERSION_CODE = 1;

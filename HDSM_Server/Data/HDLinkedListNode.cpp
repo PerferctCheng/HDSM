@@ -49,17 +49,17 @@ HDLinkedListNode::HDLinkedListNode(const HCHAR *pszBuf, HUINT32 nBufLen)
 	if (pszBuf != NULL && nBufLen > 0)
 	{
 		HUINT8 checksum = pszBuf[0];
-		if (checksum == Utils::get_check_sum(pszBuf+sizeof(HUINT8), nBufLen- sizeof(HUINT8)))
+		if (checksum == Utils::get_check_sum(pszBuf+sizeof(HUINT8), nBufLen-sizeof(HUINT8)))
 		{
 			HUINT32 offset = sizeof(HUINT8);
 			memcpy(&m_ucFlag, pszBuf+offset, sizeof(m_ucFlag));
 			offset += sizeof(m_ucFlag);
 
-			memcpy(&m_ullTimestamp, pszBuf+offset, sizeof(HUINT64));
-			offset += sizeof(HUINT64);
+			memcpy(&m_ullTimestamp, pszBuf+offset, sizeof(m_ullTimestamp));
+			offset += sizeof(m_ullTimestamp);
 
-			memcpy(&m_lExpireMinutes, pszBuf+offset, sizeof(HINT32));
-			offset += sizeof(HINT32);
+			memcpy(&m_lExpireMinutes, pszBuf+offset, sizeof(m_lExpireMinutes));
+			offset += sizeof(m_lExpireMinutes);
 
 			memcpy(&m_ulNextPtr, pszBuf+offset, sizeof(m_ulNextPtr));
 			offset += sizeof(m_ulNextPtr);
