@@ -10,7 +10,7 @@ class OplogSyncThread
 {
 public:
 	OplogSyncThread(ITaskCenter *pTaskCenter);
-	~OplogSyncThread(void);
+	virtual ~OplogSyncThread(void);
 private:
 	virtual void run();
 private:

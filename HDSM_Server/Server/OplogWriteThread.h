@@ -9,7 +9,7 @@ class OplogWriteThread
 {
 public:
 	OplogWriteThread(IOplogManager *pManager);
-	~OplogWriteThread(void);
+	virtual ~OplogWriteThread(void);
 private:
 	virtual void run();
 private:

@@ -9,7 +9,7 @@ class OplogSynchronizer
 {
 public:
 	OplogSynchronizer(void);
-	~OplogSynchronizer(void);
+	virtual ~OplogSynchronizer(void);
 public:
 	HUINT64 sync(string &str);
 	HBOOL ack(HUINT64 ullAckIndex);
