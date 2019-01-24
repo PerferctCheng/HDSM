@@ -63,6 +63,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -83,6 +84,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <OutDir>$(SolutionDir)$(MSBuildProjectName)\bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(MSBuildProjectName)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <LibraryPath>./projects/HDSM_Base_lib/bin/x64/Release/libHDSM_Base_lib.a;</LibraryPath>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="HDSMClientLib\HDSMClient.cpp" />
@@ -105,6 +110,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../HDSM_Base_lib;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>../HDSM_Base_lib;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

@@ -80,6 +80,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <OutDir>$(SolutionDir)$(MSBuildProjectName)\bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(MSBuildProjectName)\bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="ConfigureMgr.cpp" />
     <ClCompile Include="Data\BufferPool.cpp" />
@@ -151,6 +154,15 @@
     <Link>
       <AdditionalOptions>-lrt -lpthread</AdditionalOptions>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <AdditionalOptions>-lrt -lpthread</AdditionalOptions>
+      <AdditionalDependencies>./projects/HDSM_Base_lib/bin/x64/Release/libHDSM_Base_lib.a;$(StlAdditionalDependencies);%(Link.AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>../HDSM_Base_lib;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

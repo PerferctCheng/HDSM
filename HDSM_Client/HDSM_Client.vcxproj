@@ -81,6 +81,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <OutDir>$(SolutionDir)$(MSBuildProjectName)\bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(MSBuildProjectName)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <LibraryPath>$(SolutionDir)bin\$(Platform)\$(Configuration)\</LibraryPath>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="HDSMCommand.cpp" />
     <ClCompile Include="HDSMCommandExecutor.cpp" />
@@ -106,6 +110,15 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
       <AdditionalDependencies>./projects/HDSM_Client_lib/bin/x86/Debug/libHDSM_Client_lib.a;$(StlAdditionalDependencies);%(Link.AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>-lrt -lpthread</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../HDSM_Base_lib;../HDSM_Client_lib;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>./projects/HDSM_Client_lib/bin/x64/Release/libHDSM_Client_lib.a;./projects/HDSM_Base_lib/bin/x64/Release/libHDSM_Base_lib.a;$(StlAdditionalDependencies);%(Link.AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>-lrt -lpthread</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
