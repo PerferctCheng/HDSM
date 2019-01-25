@@ -7,7 +7,6 @@
 #include "../Logger.h"
 
 HUINT32 INIT_THREAD_COUNT = ConfigureMgr::get_init_threads_count();
-HUINT32 KEY_PREFIX_LEN = 8;
 
 HDSimpleMap::HDSimpleMap(const string &strDataPath)
 {
@@ -80,32 +79,37 @@ HDSimpleMap::~HDSimpleMap(void)
 
 HBOOL HDSimpleMap::get(const string &k, string &v, HINT32 &lExpireMinutes)
 {
-	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->get(fk, v, lExpireMinutes);
+	string fk;
+	HUINT32 hash = get_format_key(k, fk);
+	return m_ppList[hash%Global::MAX_SHARD_COUNT]->get(fk, v, lExpireMinutes);
 }
 
 HBOOL HDSimpleMap::put(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
-	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->put(fk, v, ts, lExpireMinutes);
+	string fk;
+	HUINT32 hash = get_format_key(k, fk);
+	return m_ppList[hash%Global::MAX_SHARD_COUNT]->put(fk, v, ts, lExpireMinutes);
 }
 
 HBOOL HDSimpleMap::update(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
-	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->update(fk, v, ts, lExpireMinutes);
+	string fk;
+	HUINT32 hash = get_format_key(k, fk);
+	return m_ppList[hash%Global::MAX_SHARD_COUNT]->update(fk, v, ts, lExpireMinutes);
 }
 
 HBOOL HDSimpleMap::erase(const string &k)
 {
-	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->erase(fk);
+	string fk;
+	HUINT32 hash = get_format_key(k, fk);
+	return m_ppList[hash%Global::MAX_SHARD_COUNT]->erase(fk);
 }
 
 HBOOL HDSimpleMap::exists(const string &k)
 {
-	string fk =get_format_key(k);
-	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->exists(fk);
+	string fk;
+	HUINT32 hash = get_format_key(k, fk);
+	return m_ppList[hash%Global::MAX_SHARD_COUNT]->exists(fk);
 }
 
 HUINT32 HDSimpleMap::length()
@@ -119,7 +123,7 @@ HUINT32 HDSimpleMap::length()
 	return len;
 }
 
-string HDSimpleMap::get_format_key(const string &k)
+HUINT32 HDSimpleMap::get_format_key(const string &k, string &fk)
 {
 	static const HCHAR *TABLE = "0123456789abcdef";
 	HUINT32 hash = Utils::hash(k, k.size());
@@ -134,7 +138,8 @@ string HDSimpleMap::get_format_key(const string &k)
 	str += TABLE[(hash>>28) & 0x0000000F];
 	str += "@";
 	str += k;
-	return str;
+	fk = str;
+	return hash;
 }
 
 string HDSimpleMap::get_raw_key(const string &k)

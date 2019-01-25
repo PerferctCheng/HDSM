@@ -64,7 +64,7 @@ void TestThread::put_many_keys()
 	{
 		string key = "k@abcdefg#" + std::to_string(i);
 		string value = "v@abcdefg#" + std::to_string(i);
-		HINT32 lExpireMinutes = i%100; 
+		HINT32 lExpireMinutes = -1; 
 		r.reset();
 		r = m_pClient->put(key, value, lExpireMinutes);
 

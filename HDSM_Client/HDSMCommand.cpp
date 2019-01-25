@@ -233,7 +233,7 @@ HBOOL HDSMCommand::parse_test_command(const string &cmd)
 					if (strEndOffset.length() > 0)
 						m_ulEndOffset = atol(strEndOffset.c_str());
 
-					if (m_ulEndOffset < 1000000 && m_ulEndOffset > m_ulStartOffset)
+					if (m_ulEndOffset <= 100000000 && m_ulEndOffset > m_ulStartOffset)
 						m_bValid = true;
 				}
 			}
