@@ -7,17 +7,17 @@
 #include "../Logger.h"
 
 HUINT32 INIT_THREAD_COUNT = ConfigureMgr::get_init_threads_count();
+HUINT32 KEY_PREFIX_LEN = 8;
 
 HDSimpleMap::HDSimpleMap(const string &strDataPath)
 {
+	Utils::create_dirs(strDataPath);
 	INIT_THREAD_COUNT = INIT_THREAD_COUNT/2 * 2;
 	Logger::log_i("Data Shards: %d, Init Threads: %d", Global::MAX_SHARD_COUNT, INIT_THREAD_COUNT);
 	m_ppList = new HDLinkedList *[Global::MAX_SHARD_COUNT];
 	for (HUINT64 i=0; i<Global::MAX_SHARD_COUNT; i++)
 	{
-		string strDP = strDataPath + "/" + std::to_string((i/64)+1);		
-		Utils::create_dirs(strDP);
-		m_ppList[i] = new HDLinkedList(strDP+"/shard"+std::to_string((i%64)+1)+".hdl");
+		m_ppList[i] = new HDLinkedList(strDataPath+"/shard"+std::to_string(i+1)+".hdl");
 	}
 
 	m_nSuccessedInitThreadCount = 0;
@@ -81,31 +81,31 @@ HDSimpleMap::~HDSimpleMap(void)
 HBOOL HDSimpleMap::get(const string &k, string &v, HINT32 &lExpireMinutes)
 {
 	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, Global::MAX_INDEX_LEN)%Global::MAX_SHARD_COUNT]->get(fk, v, lExpireMinutes);
+	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->get(fk, v, lExpireMinutes);
 }
 
 HBOOL HDSimpleMap::put(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
 	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, Global::MAX_INDEX_LEN)%Global::MAX_SHARD_COUNT]->put(fk, v, ts, lExpireMinutes);
+	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->put(fk, v, ts, lExpireMinutes);
 }
 
 HBOOL HDSimpleMap::update(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
 	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, Global::MAX_INDEX_LEN)%Global::MAX_SHARD_COUNT]->update(fk, v, ts, lExpireMinutes);
+	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->update(fk, v, ts, lExpireMinutes);
 }
 
 HBOOL HDSimpleMap::erase(const string &k)
 {
 	string fk = get_format_key(k);
-	return m_ppList[Utils::hash(fk, Global::MAX_INDEX_LEN)%Global::MAX_SHARD_COUNT]->erase(fk);
+	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->erase(fk);
 }
 
 HBOOL HDSimpleMap::exists(const string &k)
 {
 	string fk =get_format_key(k);
-	return m_ppList[Utils::hash(fk, Global::MAX_INDEX_LEN)%Global::MAX_SHARD_COUNT]->exists(fk);
+	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->exists(fk);
 }
 
 HUINT32 HDSimpleMap::length()

@@ -36,6 +36,11 @@ ipch/
 *.user
 *.sdf
 *.opensdf
+*.suo
 
 # VS Build files
 Debug/
+Release/
+obj/
+.svn/
+.vs/

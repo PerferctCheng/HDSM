@@ -27,9 +27,6 @@ HINT32 main(HINT32 argc, HCHAR* argv[])
 
 	system("pause");
 #else
-#ifdef WIN32
-		_setmaxstdio(2048);
-#endif
 		BaseSocket::init();
 		Logger::log_i("Welcome to use HDSM %d.0!!!", Global::VERSION_CODE);
 		Logger::log_i("Server Work Mode: %s", Global::SERVER_MODE == 0 ? "ALONE" : "MIRROR");

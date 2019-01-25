@@ -179,8 +179,8 @@ HUINT32 ConfigureMgr::get_max_value_length()
 
 HUINT32 ConfigureMgr::get_shard_count()
 {
-	HUINT32 cnt = GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_shard_count", 256);
-	if (cnt > 1024) cnt = 1024;
+	HUINT32 cnt = GetKeyInt(Global::CONFIGURE_FILE_PATH, "configure", "data_shard_count", 64);
+	if (cnt > 128) cnt = 128;
 	if (cnt < 16) cnt = 16;
 	cnt = cnt / 16 * 16;
 	return cnt;
