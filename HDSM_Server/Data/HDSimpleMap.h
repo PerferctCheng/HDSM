@@ -35,7 +35,7 @@ public:
 	vector<HUINT32> get_indexs_size();
 	HUINT32 get_expire_cache_size();
 private:
-	HUINT32 get_format_key(const string &k, string &fk);
+	string get_format_key(const string &k);
 	string get_raw_key(const string &k);
 private:
 	HDLinkedList	**m_ppList;
