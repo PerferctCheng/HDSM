@@ -18,10 +18,10 @@ HDLinkedList::HDLinkedList(const string &strDataFile)
 		OFFSET_INVALID_LENGTH_FIELD(strlen(FILE_TAG)+sizeof(Global::VERSION_CODE)+sizeof(m_ulLength))
 {
 	m_bInitialized = false;
-	m_lFileEndPos = 0;
+	m_llFileEndPos = 0;
 	m_ulLength = 0;
 	m_ulInvalidLength = 0;
-	m_lStartOffset = strlen(FILE_TAG)+sizeof(Global::VERSION_CODE)+sizeof(m_ulLength)+sizeof(m_ulInvalidLength)+sizeof(m_lStartOffset);
+	m_llStartOffset = strlen(FILE_TAG)+sizeof(Global::VERSION_CODE)+sizeof(m_ulLength)+sizeof(m_ulInvalidLength)+sizeof(m_llStartOffset);
 	m_strDataFile = strDataFile;
 	m_pBufPool = new BufferPool(Global::MAX_BUFFER_ROOMS_COUNT, Global::MAX_BUFFER_ROOMS_SIZE);
 	m_pIndex = new HDLinkedListIndex(this, ConfigureMgr::get_enable_high_level_index());
@@ -33,8 +33,8 @@ HDLinkedList::~HDLinkedList(void)
 {
 	if (m_pBufPool != NULL)
 		delete m_pBufPool; 
-	if (m_fpDataFile != NULL)
-		fclose(m_fpDataFile);
+	if (m_fsDataFile.is_open())
+		m_fsDataFile.close();
 	if (m_pIndex != NULL)
 		delete m_pIndex;
 	if (m_pExpireCache != NULL)
@@ -55,61 +55,62 @@ HBOOL HDLinkedList::_init()
 {
 	if (!Utils::file_exist(m_strDataFile))
 	{
-		m_fpDataFile = fopen(m_strDataFile.c_str(), "wb+");
-		if (m_fpDataFile != NULL)
+		Utils::open_file(m_fsDataFile, m_strDataFile);
+		if (m_fsDataFile.is_open())
 		{
-			fwrite(FILE_TAG, strlen(FILE_TAG), 1, m_fpDataFile);
-			m_lFileEndPos += strlen(FILE_TAG);
-			fwrite((const HCHAR *)&Global::VERSION_CODE, sizeof(HUINT32), 1, m_fpDataFile);
-			m_lFileEndPos += sizeof(HUINT32);
-			fwrite((const HCHAR *)&m_ulLength, sizeof(HUINT32), 1, m_fpDataFile);
-			m_lFileEndPos += sizeof(HUINT32);
-			fwrite((const HCHAR *)&m_ulInvalidLength, sizeof(HUINT32), 1, m_fpDataFile);
-			m_lFileEndPos += sizeof(HUINT32);
-			fwrite((const HCHAR *)&m_lStartOffset, sizeof(HUINT32), 1, m_fpDataFile);
-			m_lFileEndPos += sizeof(HUINT32);
-			fflush(m_fpDataFile);
+			m_fsDataFile.write(FILE_TAG, strlen(FILE_TAG));
+			m_llFileEndPos += strlen(FILE_TAG);
+
+			m_fsDataFile.write((const HCHAR *)&Global::VERSION_CODE, sizeof(Global::VERSION_CODE));
+			m_llFileEndPos += sizeof(Global::VERSION_CODE);
+
+			m_fsDataFile.write((const HCHAR *)&m_ulLength, sizeof(m_ulLength));
+			m_llFileEndPos += sizeof(m_ulLength);
+
+			m_fsDataFile.write((const HCHAR *)&m_ulInvalidLength, sizeof(m_ulInvalidLength));
+			m_llFileEndPos += sizeof(m_ulInvalidLength);
+
+			m_fsDataFile.write((const HCHAR *)&m_llStartOffset, sizeof(m_llStartOffset));
+			m_llFileEndPos += sizeof(m_llStartOffset);
+
+			m_fsDataFile.flush();
 			return true;
 		}
 	}
 	else
 	{
-		m_fpDataFile = fopen(m_strDataFile.c_str(), "rb+");
-		if (m_fpDataFile != NULL)
+		Utils::open_file(m_fsDataFile, m_strDataFile);
+		if (m_fsDataFile.is_open())
 		{
-			HCHAR *file_tag = new HCHAR[strlen(FILE_TAG)+1];
-			memset(file_tag, 0, strlen(FILE_TAG)+1);
-			fread(file_tag, strlen(FILE_TAG), 1, m_fpDataFile);
+			char file_tag[Global::DEFAULT_TEMP_BUFFER_SIZE] = { 0 };
+			m_fsDataFile.read(file_tag, strlen(FILE_TAG));
 			if (strcmp(file_tag, FILE_TAG) != 0)
 			{
-				delete file_tag;
-				fclose(m_fpDataFile);
-				m_fpDataFile = NULL;
+				m_fsDataFile.close();
 				return false;
 			}
-			delete file_tag;
 
-			fread(&m_ulVersionCode, sizeof(HUINT32), 1, m_fpDataFile);
+
+			m_fsDataFile.read((HCHAR *)&m_ulVersionCode, sizeof(m_ulVersionCode));
 			if (m_ulVersionCode > Global::VERSION_CODE)
 			{
-				fclose(m_fpDataFile);
-				m_fpDataFile = NULL;
+				m_fsDataFile.close();
 				return false;
 			}
 
-			fread(&m_ulLength, sizeof(HUINT32), 1, m_fpDataFile);
-			fread(&m_ulInvalidLength, sizeof(HUINT32), 1, m_fpDataFile);
+			m_fsDataFile.read((HCHAR *)&m_ulLength, sizeof(m_ulLength));
+			m_fsDataFile.read((HCHAR *)&m_ulInvalidLength, sizeof(m_ulInvalidLength));
+			m_fsDataFile.read((HCHAR *)&m_llStartOffset, sizeof(m_llStartOffset));
 
-			fread(&m_lStartOffset, sizeof(HUINT32), 1, m_fpDataFile);
-			if ((HUINT32)m_lStartOffset < (strlen(FILE_TAG)+sizeof(Global::VERSION_CODE)+sizeof(m_ulLength)+sizeof(m_ulInvalidLength)+sizeof(m_lStartOffset)))
+			if (m_llStartOffset < (strlen(FILE_TAG)+sizeof(Global::VERSION_CODE)+sizeof(m_ulLength)+sizeof(m_ulInvalidLength)+sizeof(m_llStartOffset)))
 			{
-				fclose(m_fpDataFile);
-				m_fpDataFile = NULL;
+				m_fsDataFile.close();
 				return false;
 			}
 
-			fseek(m_fpDataFile, 0, SEEK_END);
-			m_lFileEndPos = ftell(m_fpDataFile);
+			m_fsDataFile.seekp(0, ios::end);
+			m_fsDataFile.seekg(0, ios::end);
+			m_llFileEndPos = m_fsDataFile.tellg();
 
 			init_indexs();
 			return true;
@@ -126,14 +127,15 @@ HBOOL HDLinkedList::is_valid()
 
 void HDLinkedList::init_indexs()
 {
-	if (m_fpDataFile != NULL)
+	if (m_fsDataFile.is_open())
 	{
 		if (m_ulLength > 0)
 		{
 			Logger::log_i("Loading Data Index: %s", m_strDataFile.c_str());
+
 			HDLinkedListNode *pNode = NULL;
-			HINT32 nextoffset = m_lStartOffset;	
-			//HINT32 k = 0;
+			HINT64 nextoffset = m_llStartOffset;
+
 			while (nextoffset != 0)
 			{
 				GET_NODE(pNode, nextoffset);
@@ -170,27 +172,32 @@ void HDLinkedList::init_indexs()
 
 void HDLinkedList::update_node(HDLinkedListNode &node)
 {
-	//大小不能变，只能更新前后指针值
-	fseek(m_fpDataFile, node.self()+sizeof(HUINT32), SEEK_SET);
-	fwrite(node.buffer().c_str(), node.size(), 1, m_fpDataFile);
-	fflush(m_fpDataFile);
+	//大小不能改，只能更新前后指针值
+	m_fsDataFile.seekg(node.self()+sizeof(HUINT32), ios::beg);
+	m_fsDataFile.seekp(node.self()+sizeof(HUINT32), ios::beg);
+	m_fsDataFile.write(node.buffer().c_str(), node.size());
+	m_fsDataFile.flush();
 	return;
 }
 
 void HDLinkedList::add_node(HDLinkedListNode &node)
 {
-	fseek(m_fpDataFile, node.self(), SEEK_SET);
+	m_fsDataFile.seekg(node.self(), ios::beg);
+	m_fsDataFile.seekp(node.self(), ios::beg);
+	
 	HUINT32 ulNodeLen = node.size();
-	fwrite(&ulNodeLen, sizeof(HUINT32), 1, m_fpDataFile);
-	fwrite(node.buffer().c_str(), node.size(), 1, m_fpDataFile);
+	m_fsDataFile.write((const HCHAR*)&ulNodeLen, sizeof(ulNodeLen));
+	m_fsDataFile.write(node.buffer().c_str(), node.size());
 
 	m_ulLength++;
-	fseek(m_fpDataFile, OFFSET_LENGTH_FIELD, SEEK_SET);
-	fwrite(&m_ulLength, sizeof(m_ulLength), 1, m_fpDataFile);
-	fflush(m_fpDataFile);
+	m_fsDataFile.seekg(OFFSET_LENGTH_FIELD, ios::beg);
+	m_fsDataFile.seekp(OFFSET_LENGTH_FIELD, ios::beg);
+	m_fsDataFile.write((const HCHAR *)&m_ulLength, sizeof(m_ulLength));
+	
+	m_fsDataFile.flush();
 
-	m_lFileEndPos += sizeof(HUINT32);
-	m_lFileEndPos += node.size();
+	m_llFileEndPos += sizeof(ulNodeLen);
+	m_llFileEndPos += node.size();
 
 	m_pExpireCache->post(&node);
 
@@ -199,37 +206,40 @@ void HDLinkedList::add_node(HDLinkedListNode &node)
 
 void HDLinkedList::update_length()
 {
-	fseek(m_fpDataFile, OFFSET_LENGTH_FIELD, SEEK_SET);
-	fwrite(&m_ulLength, sizeof(m_ulLength), 1, m_fpDataFile);
-	fflush(m_fpDataFile);
+	m_fsDataFile.seekg(OFFSET_LENGTH_FIELD, ios::beg);
+	m_fsDataFile.seekp(OFFSET_LENGTH_FIELD, ios::beg);
+	m_fsDataFile.write((const HCHAR*)&m_ulLength, sizeof(m_ulLength));
+	m_fsDataFile.flush();
 	return;
 }
 
 void HDLinkedList::update_invalid_length()
 {
-	fseek(m_fpDataFile, OFFSET_INVALID_LENGTH_FIELD, SEEK_SET);
-	fwrite(&m_ulInvalidLength, sizeof(m_ulInvalidLength), 1, m_fpDataFile);
-	fflush(m_fpDataFile);
+	m_fsDataFile.seekg(OFFSET_INVALID_LENGTH_FIELD, ios::beg);
+	m_fsDataFile.seekp(OFFSET_INVALID_LENGTH_FIELD, ios::beg);
+	m_fsDataFile.write((const HCHAR*)&m_ulInvalidLength, sizeof(m_ulInvalidLength));
+	m_fsDataFile.flush();
 	return;
 }
 
 void HDLinkedList::update_start_offset()
 {
-	fseek(m_fpDataFile, OFFSET_STARTOFFSET_FIELD, SEEK_SET);
-	fwrite(&m_lStartOffset, sizeof(m_lStartOffset), 1, m_fpDataFile);
-	fflush(m_fpDataFile);
+	m_fsDataFile.seekg(OFFSET_STARTOFFSET_FIELD, ios::beg);
+	m_fsDataFile.seekp(OFFSET_STARTOFFSET_FIELD, ios::beg);
+	m_fsDataFile.write((const HCHAR*)&m_llStartOffset, sizeof(m_llStartOffset));
+	m_fsDataFile.flush();
 	return;
 }
 
 HBOOL HDLinkedList::put_when_length_eq_zero(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
-	m_pIndex->insert(k, m_lFileEndPos);
+	m_pIndex->insert(k, m_llFileEndPos);
 
-	m_lStartOffset = m_lFileEndPos;
+	m_llStartOffset = m_llFileEndPos;
 	update_start_offset();	
 
 	HDLinkedListNode node(k, v, ts, lExpireMinutes);
-	node.set_self(m_lFileEndPos);
+	node.set_self(m_llFileEndPos);
 	add_node(node);
 
 	return true;
@@ -239,19 +249,19 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 {
 	HDLinkedListNode *pNode = NULL;
 
-	HINT32 start = m_lStartOffset;
-	HINT32 end = 0;
+	HINT64 start = m_llStartOffset;
+	HINT64 end = 0;
 	HUINT32 level = Level_None;
 
-	interval val = m_pIndex->get(k, m_lFileEndPos, level);
+	interval val = m_pIndex->get(k, m_llFileEndPos, level);
 	if (level > Level_None)
 	{
-		start = val.lStartOffset;
-		end = val.lEndOffset;
+		start = val.llStartOffset;
+		end = val.llEndOffset;
 	}
-	m_pIndex->insert(k, m_lFileEndPos);
+	m_pIndex->insert(k, m_llFileEndPos);
 
-	HINT32 nextoffset = start;
+	HINT64 nextoffset = start;
 	while (nextoffset != 0)
 	{
 		GET_NODE(pNode, nextoffset);
@@ -266,7 +276,7 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 					if (nextoffset == 0)
 					{
 						HDLinkedListNode node(k, v, ts, lExpireMinutes);
-						node.set_self(m_lFileEndPos);
+						node.set_self(m_llFileEndPos);
 						node.set_next(0);
 						node.set_pre(pNode->self());
 						add_node(node);
@@ -287,14 +297,14 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 				else
 				{
 					HDLinkedListNode node(k, v, ts, lExpireMinutes);
-					node.set_self(m_lFileEndPos);
+					node.set_self(m_llFileEndPos);
 					node.set_next(pNode->self());
 					node.set_pre(pNode->pre());
 					add_node(node);
 
-					if (pNode->self() == m_lStartOffset)
+					if (pNode->self() == m_llStartOffset)
 					{
-						m_lStartOffset = node.self();
+						m_llStartOffset = node.self();
 						update_start_offset();
 					}
 
@@ -317,11 +327,11 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 				HINT32 r = pNode->key().compare(k);
 				if (r < 0)
 				{
-					HUINT32 lEndOffset = m_pIndex->query(pNode->key(), level+1).lEndOffset;
-					if (lEndOffset != nextoffset)
+					HUINT64 llEndOffset = m_pIndex->query(pNode->key(), level+1).llEndOffset;
+					if (llEndOffset != nextoffset)
 					{
 						HDLinkedListNode *pEndNode = NULL;
-						GET_NODE(pEndNode, lEndOffset);
+						GET_NODE(pEndNode, llEndOffset);
 						if (pEndNode == NULL)
 						{
 							return false;
@@ -332,7 +342,7 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 							if (nextoffset == 0)
 							{
 								HDLinkedListNode node(k, v, ts, lExpireMinutes);
-								node.set_self(m_lFileEndPos);
+								node.set_self(m_llFileEndPos);
 								node.set_next(0);
 								node.set_pre(pEndNode->self());
 								add_node(node);
@@ -349,7 +359,7 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 						if (nextoffset == 0)
 						{
 							HDLinkedListNode node(k, v, ts, lExpireMinutes);
-							node.set_self(m_lFileEndPos);
+							node.set_self(m_llFileEndPos);
 							node.set_next(0);
 							node.set_pre(pNode->self());
 							add_node(node);
@@ -364,14 +374,14 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 				else if (r > 0)
 				{
 					HDLinkedListNode node(k, v, ts, lExpireMinutes);
-					node.set_self(m_lFileEndPos);
+					node.set_self(m_llFileEndPos);
 					node.set_next(pNode->self());
 					node.set_pre(pNode->pre());
 					add_node(node);
 
-					if (pNode->self() == m_lStartOffset)
+					if (pNode->self() == m_llStartOffset)
 					{
-						m_lStartOffset = node.self();
+						m_llStartOffset = node.self();
 						update_start_offset();
 					}
 
@@ -404,9 +414,8 @@ HBOOL HDLinkedList::put_when_length_uneq_zero(const string &k, const string &v, 
 
 HBOOL HDLinkedList::_put(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
-	if (m_fpDataFile == NULL) 
+	if (!m_fsDataFile.is_open()) 
 		return false;
-
 	if (m_ulLength == 0)
 		return put_when_length_eq_zero(k, v, ts, lExpireMinutes);
 	else
@@ -415,7 +424,7 @@ HBOOL HDLinkedList::_put(const string &k, const string &v, HUINT64 ts, HINT32 lE
 
 HBOOL HDLinkedList::_erase(const string &k)
 {
-	if (m_fpDataFile == NULL) 
+	if (!m_fsDataFile.is_open()) 
 		return false;
 	HDLinkedListNode node = get_node_by_key(k);
 	if (!node.is_valid())
@@ -451,9 +460,9 @@ HBOOL HDLinkedList::_erase(HDLinkedListNode *pNode)
 			}
 		}
 
-		if (pNode->self() == m_lStartOffset && pNode->next() != 0)
+		if (pNode->self() == m_llStartOffset && pNode->next() != 0)
 		{
-			m_lStartOffset = pNode->next();
+			m_llStartOffset = pNode->next();
 			update_start_offset();
 		}
 
@@ -473,14 +482,14 @@ HBOOL HDLinkedList::_erase(HDLinkedListNode *pNode)
 
 HDLinkedListNode HDLinkedList::get_node_by_key(const string &k)
 {
-	HINT32 start = 0;
-	HINT32 end = 0;
+	HINT64 start = 0;
+	HINT64 end = 0;
 
 	interval val = m_pIndex->query(k, m_pIndex->get_top_level());
-	if (val.lStartOffset > 0 && val.lEndOffset > 0)
+	if (val.llStartOffset > 0 && val.llEndOffset > 0)
 	{
-		start = val.lStartOffset;
-		end = val.lEndOffset;
+		start = val.llStartOffset;
+		end = val.llEndOffset;
 	}
 	else
 	{
@@ -488,7 +497,7 @@ HDLinkedListNode HDLinkedList::get_node_by_key(const string &k)
 	}
 
 	HDLinkedListNode *pNode = NULL;
-	HINT32 nextoffset = start;
+	HINT64 nextoffset = start;
 	while (nextoffset != 0)
 	{
 		GET_NODE(pNode, nextoffset);
@@ -523,16 +532,16 @@ HDLinkedListNode HDLinkedList::get_node_by_key(const string &k)
 
 HBOOL HDLinkedList::_get(const string &k, string &v, HINT32 &lExpireMinutes, HDLinkedListNode *p)
 {
-	if (m_fpDataFile == NULL) 
+	if (!m_fsDataFile.is_open()) 
 		return false;
 
-	HINT32 start = 0;
-	HINT32 end = 0;
+	HINT64 start = 0;
+	HINT64 end = 0;
 	interval val = m_pIndex->query(k, m_pIndex->get_top_level());
-	if (val.lStartOffset > 0 && val.lEndOffset > 0)
+	if (val.llStartOffset > 0 && val.llEndOffset > 0)
 	{
-		start = val.lStartOffset;
-		end = val.lEndOffset;
+		start = val.llStartOffset;
+		end = val.llEndOffset;
 	}
 	else
 	{
@@ -542,7 +551,7 @@ HBOOL HDLinkedList::_get(const string &k, string &v, HINT32 &lExpireMinutes, HDL
 	//Logger::log_i("key=%s, start=%d, end=%d",k.c_str(), start, end);
 
 	HDLinkedListNode *pNode = NULL;
-	HINT32 nextoffset = start;
+	HINT64 nextoffset = start;
 	while (nextoffset != 0)
 	{
 		GET_NODE(pNode, nextoffset);
@@ -592,10 +601,9 @@ HUINT32 HDLinkedList::version()
 	return m_ulVersionCode;
 }
 
-HDLinkedListNode HDLinkedList::get_node(HINT32 offset)
+HDLinkedListNode HDLinkedList::get_node(HINT64 offset)
 {
-	FILE *fp = m_fpDataFile;
-	if (fp == NULL || offset == 0) 
+	if (offset <= 0) 
 		return HDLinkedListNode(NULL, 0);
 
 	HINT32 iBufferPoolIndex = -1;
@@ -606,10 +614,11 @@ HDLinkedListNode HDLinkedList::get_node(HINT32 offset)
 
 	HUINT32 ulNodeLen = 0;
 	m_SeekFileLock.lock();
-	fseek(fp, offset, SEEK_SET);
-	fread(&ulNodeLen, sizeof(HUINT32), 1, fp);
+	m_fsDataFile.seekg(offset, ios::beg);
+	m_fsDataFile.seekp(offset, ios::beg);
+	m_fsDataFile.read((HCHAR *)&ulNodeLen, sizeof(ulNodeLen));
 	if (ulNodeLen > HDLinkedListNode::min_size() && ulNodeLen <= HDLinkedListNode::max_size())
-		fread((*m_pBufPool).get(iBufferPoolIndex), ulNodeLen, 1, fp);
+		m_fsDataFile.read((HCHAR *)(*m_pBufPool).get(iBufferPoolIndex), ulNodeLen);
 	else
 		ulNodeLen = 0;
 	m_SeekFileLock.unlock();
@@ -624,12 +633,12 @@ HDLinkedListNode HDLinkedList::get_node(HINT32 offset)
 
 void HDLinkedList::_output_to_map(map<string, KeyValueInfo> &mapOutput, HUINT32 limit)
 {
-	if (m_fpDataFile != NULL)
+	if (m_fsDataFile.is_open())
 	{
 		if (m_ulLength > 0)
 		{
 			HUINT32 count = 0;
-			HINT32 nextoffset = m_lStartOffset;
+			HINT64 nextoffset = m_llStartOffset;
 			HDLinkedListNode *pNode = NULL;
 			while (nextoffset != 0 && count < limit)
 			{
@@ -657,36 +666,41 @@ HUINT32 HDLinkedList::invalid_length()
 
 HBOOL HDLinkedList::_trim_for_erase()
 {
-	if (m_fpDataFile == NULL) 
+	if (!m_fsDataFile.is_open()) 
 		return false;
 
 	Logger::log_i("Trimming Data File: %s", m_strDataFile.c_str());
 
 	string strTempDataFile = m_strDataFile + ".temp";
-	FILE *fp = fopen(strTempDataFile.c_str(), "wb");
-	if (fp != NULL)
+	fstream fs;
+	Utils::open_file(fs, strTempDataFile);
+	if (fs.is_open())
 	{
 		m_pIndex->clear();
-		m_lFileEndPos = 0;
+		m_llFileEndPos = 0;
 		m_ulInvalidLength = 0;
 
-		fwrite(FILE_TAG, strlen(FILE_TAG), 1, fp);
-		m_lFileEndPos += strlen(FILE_TAG);
-		fwrite((const HCHAR *)&Global::VERSION_CODE, sizeof(HUINT32), 1, fp);
-		m_lFileEndPos += sizeof(HUINT32);
-		fwrite((const HCHAR *)&m_ulLength, sizeof(HUINT32), 1, fp);
-		m_lFileEndPos += sizeof(HUINT32);
-		fwrite((const HCHAR *)&m_ulInvalidLength, sizeof(HUINT32), 1, fp);
-		m_lFileEndPos += sizeof(HUINT32);
-		HINT32 lTempStartOffset = m_lFileEndPos+sizeof(HUINT32);
-		fwrite((const HCHAR *)&lTempStartOffset, sizeof(HUINT32), 1, fp);
-		m_lFileEndPos += sizeof(HUINT32);
+		fs.write(FILE_TAG, strlen(FILE_TAG));
+		m_llFileEndPos += strlen(FILE_TAG);
 
-		if (m_fpDataFile != NULL)
+		fs.write((const HCHAR *)&Global::VERSION_CODE, sizeof(Global::VERSION_CODE));
+		m_llFileEndPos += sizeof(Global::VERSION_CODE);
+
+		fs.write((const HCHAR *)&m_ulLength, sizeof(m_ulLength));
+		m_llFileEndPos += sizeof(m_ulLength);
+
+		fs.write((const HCHAR *)&m_ulInvalidLength, sizeof(m_ulInvalidLength));
+		m_llFileEndPos += sizeof(m_ulInvalidLength);
+		HINT64 llTempStartOffset = m_llFileEndPos+sizeof(HUINT32);
+
+		fs.write((const HCHAR *)&llTempStartOffset, sizeof(llTempStartOffset));
+		m_llFileEndPos += sizeof(llTempStartOffset);
+
+		if (!m_fsDataFile.is_open())
 		{
 			if (m_ulLength > 0)
 			{
-				HINT32 nextoffset = m_lStartOffset;
+				HINT64 nextoffset = m_llStartOffset;
 				HDLinkedListNode *pNode = NULL;
 				HDLinkedListNode *pPreNode = NULL;
 				while (nextoffset != 0)
@@ -695,18 +709,19 @@ HBOOL HDLinkedList::_trim_for_erase()
 					if (pNode != NULL)
 					{
 						nextoffset = pNode->next();
-						pNode->set_self(m_lFileEndPos);
+						pNode->set_self(m_llFileEndPos);
 						if (pNode->next() != 0)
-							pNode->set_next(m_lFileEndPos + pNode->size());
+							pNode->set_next(m_llFileEndPos + pNode->size());
 						if (pNode->pre() != 0 && pPreNode != NULL)
-							pNode->set_pre(m_lFileEndPos - pPreNode->size());
+							pNode->set_pre(m_llFileEndPos - pPreNode->size());
 
 						HUINT32 ulNodeLen = pNode->size();
-						fwrite(&ulNodeLen, sizeof(HUINT32), 1, fp);
-						m_lFileEndPos += sizeof(HUINT32);
-						fwrite(pNode->buffer().c_str(), pNode->size(), 1, fp);
-						m_lFileEndPos += pNode->size();
-						fflush(fp);
+						fs.write((const HCHAR *)&ulNodeLen, sizeof(ulNodeLen));
+						m_llFileEndPos += sizeof(ulNodeLen);
+
+						fs.write(pNode->buffer().c_str(), pNode->size());
+						m_llFileEndPos += pNode->size();
+						fs.flush();
 
 						m_pIndex->insert(pNode->key(), pNode->self(), true);
 
@@ -717,13 +732,14 @@ HBOOL HDLinkedList::_trim_for_erase()
 				}
 			}
 		}
-		fclose(fp);
-		fclose(m_fpDataFile);
-		m_lStartOffset = lTempStartOffset;
+		fs.close();
+		m_fsDataFile.close();
+		m_llStartOffset = llTempStartOffset;
 			
 		Utils::delete_file(m_strDataFile);
 		Utils::rename_file(strTempDataFile, m_strDataFile);
-		m_fpDataFile = fopen(m_strDataFile.c_str(), "rb+");
+
+		Utils::open_file(m_fsDataFile, m_strDataFile);
 	}
 
 	Logger::log_i("Trimming Data File Completed: %s", m_strDataFile.c_str());
@@ -751,13 +767,13 @@ HBOOL HDLinkedList::load_expire_cache()
 
 HBOOL HDLinkedList::_load_expire_cache()
 {
-	if (m_fpDataFile == NULL) 
+	if (!m_fsDataFile.is_open()) 
 		return false;
 
 	if (m_ulLength > 0)
 	{	
 		m_pExpireCache->clear();
-		HINT32 nextoffset = m_lStartOffset;
+		HINT64 nextoffset = m_llStartOffset;
 		HDLinkedListNode *pNode = NULL;
 		while (nextoffset != 0)
 		{
@@ -780,8 +796,8 @@ HBOOL HDLinkedList::_load_expire_cache()
 
 HUINT32 HDLinkedList::_trim_for_expire()
 {
-	if (m_fpDataFile == NULL) 
-		return 0;
+	if (!m_fsDataFile.is_open()) 
+		return false;
 
 	HUINT32 ulCount = 0; 
 	if (m_ulLength > 0)

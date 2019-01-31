@@ -13,6 +13,17 @@
 #include <time.h>
 
 
+HBOOL Utils::open_file(fstream &fs, const string &filename)
+{
+	fs.open(filename, ios::in|ios::out|ios::binary);
+	if (fs.is_open()) return true;
+	fs.open(filename, ios::out|ios::binary);
+	if (!fs.is_open()) return false;
+	fs.close();
+	fs.open(filename, ios::in|ios::out|ios::binary);
+	return fs.is_open();
+}
+
 HBOOL Utils::delete_file(const string &filename)
 {
 #ifdef WIN32
@@ -222,26 +233,16 @@ void Utils::sleep_for_milliseconds(HUINT32 ms)
 	return;
 }
 
-HLONG Utils::get_file_size(const string &filename)
+HINT64 Utils::get_file_size(const string &filename)
 {
-	HLONG size = -1;
-	FILE *fp = fopen(filename.c_str(), "rb");
-	if (fp != NULL)
+	HINT64 size = -1;
+	ifstream ifs(filename);
+	if (ifs.is_open())
 	{
-		size = get_file_size(fp);
-		fclose(fp);
+		ifs.seekg(0, ios::end);
+		size = ifs.tellg();
 	}
 	return size;
-}
-
-HLONG Utils::get_file_size(FILE *fp)
-{
-	if (fp != NULL)
-	{
-		fseek(fp, 0L, SEEK_END);  
-		return ftell(fp);  
-	}
-	return -1;
 }
 
 HUINT32 Utils::hash(const string &k, HUINT32 len)

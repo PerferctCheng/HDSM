@@ -12,9 +12,9 @@ HDLinkedListNode::HDLinkedListNode()
 HDLinkedListNode::HDLinkedListNode(const HDLinkedListNode &node)
 {
 	m_ucFlag = node.m_ucFlag;
-	m_ulNextPtr = node.m_ulNextPtr;
-	m_ulPrePtr = node.m_ulPrePtr;
-	m_ulSelfPtr = node.m_ulSelfPtr;
+	m_llNextPtr = node.m_llNextPtr;
+	m_llPrePtr = node.m_llPrePtr;
+	m_llSelfPtr = node.m_llSelfPtr;
 	m_strKey = node.m_strKey;
 	m_strValue = node.m_strValue;
 	m_bValid = node.m_bValid;
@@ -25,10 +25,9 @@ HDLinkedListNode::HDLinkedListNode(const HDLinkedListNode &node)
 HDLinkedListNode::HDLinkedListNode(const string &k, const string &v, HUINT64 ts, HINT32 lExpireMinutes)
 {
 	m_ucFlag = 0x00;
-	m_ulNextPtr = 0;
-	m_ulPrePtr = 0;
-	m_ulSelfPtr = 0;
-	//m_ullTimestamp = Utils::get_current_time_stamp();
+	m_llNextPtr = 0;
+	m_llPrePtr = 0;
+	m_llSelfPtr = 0;
 	m_ullTimestamp = ts;
 	m_bValid = true;
 	m_lExpireMinutes = lExpireMinutes;
@@ -49,9 +48,9 @@ HDLinkedListNode::HDLinkedListNode(const HCHAR *pszBuf, HUINT32 nBufLen)
 	if (pszBuf != NULL && nBufLen > 0)
 	{
 		HUINT8 checksum = pszBuf[0];
-		if (checksum == Utils::get_check_sum(pszBuf+sizeof(HUINT8), nBufLen-sizeof(HUINT8)))
+		if (checksum == Utils::get_check_sum(pszBuf+sizeof(checksum), nBufLen-sizeof(checksum)))
 		{
-			HUINT32 offset = sizeof(HUINT8);
+			HUINT32 offset = sizeof(checksum);
 			memcpy(&m_ucFlag, pszBuf+offset, sizeof(m_ucFlag));
 			offset += sizeof(m_ucFlag);
 
@@ -61,14 +60,14 @@ HDLinkedListNode::HDLinkedListNode(const HCHAR *pszBuf, HUINT32 nBufLen)
 			memcpy(&m_lExpireMinutes, pszBuf+offset, sizeof(m_lExpireMinutes));
 			offset += sizeof(m_lExpireMinutes);
 
-			memcpy(&m_ulNextPtr, pszBuf+offset, sizeof(m_ulNextPtr));
-			offset += sizeof(m_ulNextPtr);
+			memcpy(&m_llNextPtr, pszBuf+offset, sizeof(m_llNextPtr));
+			offset += sizeof(m_llNextPtr);
 
-			memcpy(&m_ulPrePtr, pszBuf+offset, sizeof(m_ulPrePtr));
-			offset += sizeof(m_ulPrePtr);
+			memcpy(&m_llPrePtr, pszBuf+offset, sizeof(m_llPrePtr));
+			offset += sizeof(m_llPrePtr);
 
-			memcpy(&m_ulSelfPtr, pszBuf+offset, sizeof(m_ulSelfPtr));
-			offset += sizeof(m_ulSelfPtr);
+			memcpy(&m_llSelfPtr, pszBuf+offset, sizeof(m_llSelfPtr));
+			offset += sizeof(m_llSelfPtr);
 
 			HUINT32 ulKeyLen = 0;
 			memcpy(&ulKeyLen, pszBuf+offset, sizeof(ulKeyLen));
@@ -134,9 +133,9 @@ string HDLinkedListNode::buffer()
 	_str.append((const HCHAR *)&m_ucFlag, sizeof(m_ucFlag));
 	_str.append((const HCHAR *)&m_ullTimestamp, sizeof(m_ullTimestamp));
 	_str.append((const HCHAR *)&m_lExpireMinutes, sizeof(m_lExpireMinutes));
-	_str.append((const HCHAR *)&m_ulNextPtr, sizeof(m_ulNextPtr));
-	_str.append((const HCHAR *)&m_ulPrePtr, sizeof(m_ulPrePtr));
-	_str.append((const HCHAR *)&m_ulSelfPtr, sizeof(m_ulSelfPtr));
+	_str.append((const HCHAR *)&m_llNextPtr, sizeof(m_llNextPtr));
+	_str.append((const HCHAR *)&m_llPrePtr, sizeof(m_llPrePtr));
+	_str.append((const HCHAR *)&m_llSelfPtr, sizeof(m_llSelfPtr));
 
 	HUINT32 ulKeyLen = m_strKey.length();
 	_str.append((const HCHAR *)&ulKeyLen, sizeof(ulKeyLen));
@@ -168,30 +167,30 @@ HBOOL HDLinkedListNode::is_valid()
 	return m_bValid;
 }
 
-HINT32 HDLinkedListNode::next() const
+HINT64 HDLinkedListNode::next() const
 {
-	return m_ulNextPtr;
+	return m_llNextPtr;
 }
 
-HINT32 HDLinkedListNode::pre() const
+HINT64 HDLinkedListNode::pre() const
 {
-	return m_ulPrePtr;
+	return m_llPrePtr;
 }
 
-HINT32 HDLinkedListNode::self() const
+HINT64 HDLinkedListNode::self() const
 {
-	return m_ulSelfPtr;
+	return m_llSelfPtr;
 }
 
 HUINT32 HDLinkedListNode::size()
 {
 	HUINT32 s = sizeof(HUINT8)
-		+sizeof(HUINT64)
-		+sizeof(HINT32)
-		+sizeof(HUINT8)
-		+sizeof(HINT32)
-		+sizeof(HINT32)
-		+sizeof(HINT32)
+		+sizeof(m_ucFlag)
+		+sizeof(m_ullTimestamp)
+		+sizeof(m_lExpireMinutes)
+		+sizeof(m_llNextPtr)
+		+sizeof(m_llPrePtr)
+		+sizeof(m_llSelfPtr)
 		+sizeof(HUINT32)
 		+sizeof(HUINT32)
 		+m_strKey.length()
@@ -202,12 +201,12 @@ HUINT32 HDLinkedListNode::size()
 HUINT32 HDLinkedListNode::max_size()
 {
 	HUINT32 s = sizeof(HUINT8)
+		+sizeof(HUINT8)
 		+sizeof(HUINT64)
 		+sizeof(HINT32)
-		+sizeof(HUINT8)
-		+sizeof(HINT32)
-		+sizeof(HINT32)
-		+sizeof(HINT32)
+		+sizeof(HINT64)
+		+sizeof(HINT64)
+		+sizeof(HINT64)
 		+sizeof(HUINT32)
 		+sizeof(HUINT32)
 		+Global::MAX_KEY_LENGTH
@@ -218,31 +217,31 @@ HUINT32 HDLinkedListNode::max_size()
 HUINT32 HDLinkedListNode::min_size()
 {
 	HUINT32 s = sizeof(HUINT8)
+		+sizeof(HUINT8)
 		+sizeof(HUINT64)
 		+sizeof(HINT32)
-		+sizeof(HUINT8)
-		+sizeof(HINT32)
-		+sizeof(HINT32)
-		+sizeof(HINT32)
+		+sizeof(HINT64)
+		+sizeof(HINT64)
+		+sizeof(HINT64)
 		+sizeof(HUINT32)
 		+sizeof(HUINT32);
 
 	return s;
 }
 
-void HDLinkedListNode::set_self(HINT32 s)
+void HDLinkedListNode::set_self(HINT64 s)
 {
-	m_ulSelfPtr = s;
+	m_llSelfPtr = s;
 }
 
-void HDLinkedListNode::set_next(HINT32 n)
+void HDLinkedListNode::set_next(HINT64 n)
 {
-	m_ulNextPtr = n;
+	m_llNextPtr = n;
 }
 
-void HDLinkedListNode::set_pre(HINT32 p)
+void HDLinkedListNode::set_pre(HINT64 p)
 {
-	m_ulPrePtr = p;
+	m_llPrePtr = p;
 }
 
 void HDLinkedListNode::set_value(const string &v)

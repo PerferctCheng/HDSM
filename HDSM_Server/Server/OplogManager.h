@@ -6,6 +6,7 @@
 #include "IOplogManager.h"
 #include <string>
 #include <queue>
+#include <fstream>
 #include "TypeDefine.h"
 
 using namespace std;
@@ -33,9 +34,9 @@ private:
 	string load_file(HUINT64 index);
 	void get_log_buffer(Task *pTask, string &strBuffer);
 private:
-	FILE *m_pWriteIndexFile;
-	FILE *m_pReadIndexFile;
-	FILE *m_pCurLogFile;
+	fstream m_fsWriteIndexFile;
+	fstream m_fsReadIndexFile;
+	fstream m_fsCurLogFile;
 	string m_strOPLogPath;
 	string m_strCurOPLogFile;
 private:

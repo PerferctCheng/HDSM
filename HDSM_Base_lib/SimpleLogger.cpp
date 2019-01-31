@@ -20,41 +20,38 @@ SimpleLogger::SimpleLogger(const string &strLogFilePath, HUINT32 nlevel, HUINT32
 		m_strLogFilePath = strLogFilePath;
 
 	Utils::create_dirs(m_strLogFilePath);
-	
 	m_strLogFilePath += "/hdsm.log";
 
-	if (Utils::file_exist(m_strLogFilePath))
-		m_fpLogFile = fopen(m_strLogFilePath.c_str(), "a+");
-	else
-		m_fpLogFile = fopen(m_strLogFilePath.c_str(), "w+");
-
+	m_ofs.open(m_strLogFilePath, ios::out|ios::app);
 }
 
 SimpleLogger::~SimpleLogger(void)
 {
-	if (m_fpLogFile != NULL) 
-		fclose(m_fpLogFile);
+	if (m_ofs.is_open()) 
+		m_ofs.close();
 }
 
-void SimpleLogger::check_file_size()
+HBOOL SimpleLogger::check_file_size()
 {
-	if (m_fpLogFile != NULL)
+	if (m_ofs.is_open())
 	{
-		HINT32 len = Utils::get_file_size(m_fpLogFile);
-		if (len > 0 && ((HUINT32)len) > m_ulMaxFileSize)
+		HINT64 len = m_ofs.tellp();
+		if (len > m_ulMaxFileSize)
 		{
-			fclose(m_fpLogFile);
+			m_ofs.close();
 			Utils::delete_file(m_strLogFilePath +".1");
 			Utils::rename_file(m_strLogFilePath, m_strLogFilePath +".1");
-			m_fpLogFile = fopen(m_strLogFilePath.c_str(), "w+");
+			m_ofs.open(m_strLogFilePath, ios::out|ios::app);
+			return m_ofs.is_open();
 		}
 	}
 	else
 	{
-		m_fpLogFile = fopen(m_strLogFilePath.c_str(), "a+");
+		m_ofs.open(m_strLogFilePath, ios::out|ios::app);
+		return m_ofs.is_open();
 	}
 
-	return;
+	return true;
 }
 
 HBOOL SimpleLogger::log(HUINT32 nlevel, const HCHAR *pszlevelstr,  const HCHAR *pInfo)
@@ -63,16 +60,14 @@ HBOOL SimpleLogger::log(HUINT32 nlevel, const HCHAR *pszlevelstr,  const HCHAR *
 	if (nlevel >= m_nLevel)
 		printf("%s", str.c_str());
 
-	if (!m_fpLogFile)
-		return false;
-
 	m_lock.lock();
-
-	check_file_size();
-	fprintf(m_fpLogFile, "%s", str.c_str());
-	fflush(m_fpLogFile);
-
+	if (check_file_size())
+	{
+		m_ofs << str;
+		m_ofs.flush();
+	}
 	m_lock.unlock();
+
 	return true;
 }
 

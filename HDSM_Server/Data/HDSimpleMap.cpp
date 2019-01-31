@@ -104,7 +104,7 @@ HBOOL HDSimpleMap::erase(const string &k)
 
 HBOOL HDSimpleMap::exists(const string &k)
 {
-	string fk =get_format_key(k);
+	string fk = get_format_key(k);
 	return m_ppList[Utils::hash(fk, KEY_PREFIX_LEN)%Global::MAX_SHARD_COUNT]->exists(fk);
 }
 

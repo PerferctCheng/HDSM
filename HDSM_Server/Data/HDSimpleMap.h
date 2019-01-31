@@ -41,8 +41,8 @@ private:
 	HDLinkedList	**m_ppList;
 	SimpleNotifier	m_Notifier;
 	TrimExpireThread *m_pTrimExpireThread;
-	SimpleLock m_lock;
-	HUINT32 m_nSuccessedInitThreadCount;
+	SimpleLock	m_lock;
+	HUINT32		m_nSuccessedInitThreadCount;
 	vector<HDSMInitThread *> m_vecThreads;
 };
 

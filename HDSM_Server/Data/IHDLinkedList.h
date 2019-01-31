@@ -4,5 +4,5 @@
 
 struct IHDLinkedList 
 {
-	virtual HDLinkedListNode get_node(HINT32 offset) = 0;
+	virtual HDLinkedListNode get_node(HINT64 offset) = 0;
 };

@@ -20,7 +20,7 @@ void Logger::log_d(const HCHAR *fmt, ...)
 	if (SimpleLogger::LEVEL_DEBUG < SYS_LOG_LEVEL)
 		return;
 
-	HCHAR buffer[Global::DEFAULT_BUFFER_SIZE_1K] = { 0 };
+	HCHAR buffer[Global::DEFAULT_TEMP_BUFFER_SIZE] = { 0 };
 
 	va_list args;
 	va_start(args, fmt);
@@ -36,7 +36,7 @@ void Logger::log_e(const HCHAR *fmt, ...)
 	if (SimpleLogger::LEVEL_ERROR < SYS_LOG_LEVEL)
 		return;
 
-	HCHAR buffer[Global::DEFAULT_BUFFER_SIZE_1K] = { 0 };
+	HCHAR buffer[Global::DEFAULT_TEMP_BUFFER_SIZE] = { 0 };
 
 	va_list args;
 	va_start(args, fmt);
@@ -52,7 +52,7 @@ void Logger::log_i(const HCHAR *fmt, ...)
 	if (SimpleLogger::LEVEL_INFO < SYS_LOG_LEVEL)
 		return;
 
-	HCHAR buffer[Global::DEFAULT_BUFFER_SIZE_1K] = { 0 };
+	HCHAR buffer[Global::DEFAULT_TEMP_BUFFER_SIZE] = { 0 };
 
 	va_list args;
 	va_start(args, fmt);
@@ -68,7 +68,7 @@ void Logger::log_w(const HCHAR *fmt, ...)
 	if (SimpleLogger::LEVEL_WARNNING < SYS_LOG_LEVEL)
 		return;
 
-	HCHAR buffer[Global::DEFAULT_BUFFER_SIZE_1K] = { 0 };
+	HCHAR buffer[Global::DEFAULT_TEMP_BUFFER_SIZE] = { 0 };
 
 	va_list args;
 	va_start(args, fmt);

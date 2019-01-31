@@ -8,18 +8,18 @@ using namespace std;
 
 typedef struct tagInterval
 {
-	HINT32 lStartOffset;
-	HINT32 lEndOffset;
+	HINT64 llStartOffset;
+	HINT64 llEndOffset;
 	tagInterval()
 	{
-		lStartOffset = 0;
-		lEndOffset = 0;
+		llStartOffset = 0;
+		llEndOffset = 0;
 	}
 
-	tagInterval(HINT32 s, HINT32 e)
+	tagInterval(HINT64 s, HINT64 e)
 	{
-		lStartOffset = s;
-		lEndOffset = e;
+		llStartOffset = s;
+		llEndOffset = e;
 	}
 }interval;
 
@@ -39,15 +39,15 @@ public:
 	HDLinkedListIndex(IHDLinkedList *pList, HBOOL bEnableHighLevelIndex);
 	virtual ~HDLinkedListIndex(void);
 public:
-	void insert(const string &k, HINT32 offset, HBOOL init = false);
-	interval get(const string &k, HINT32 offset, HUINT32 &level);
+	void insert(const string &k, HINT64 offset, HBOOL init = false);
+	interval get(const string &k, HINT64 offset, HUINT32 &level);
 	interval query(const string &k, HINT32 level);
 	void erase(HDLinkedListNode *pNode);
 	void clear();
 	vector<HUINT32> size();
 	HDLIST_INDEX_LEVEL get_top_level();
 private:
-	void update(map<string, interval> &m, HUINT32 level, const string &k, HINT32 offset, HBOOL init);
+	void update(map<string, interval> &m, HUINT32 level, const string &k, HINT64 offset, HBOOL init);
 	interval query(map<string, interval> &m, HUINT32 level, const string &k);
 	void erase(map<string, interval> &m, HUINT32 level, HDLinkedListNode *pNode);
 private:

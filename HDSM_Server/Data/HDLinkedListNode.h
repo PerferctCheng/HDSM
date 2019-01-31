@@ -19,23 +19,23 @@ public:
 	HUINT32 size();
 	static HUINT32 max_size();
 	static HUINT32 min_size();
-	void set_self(HINT32 s);
-	void set_next(HINT32 n);
-	void set_pre(HINT32 p);
+	void set_self(HINT64 self);
+	void set_next(HINT64 next);
+	void set_pre(HINT64 pre);
 	void set_value(const string &v);
 public:
 	const string &key();
 	const string &value();
-	HINT32 next() const;
-	HINT32 pre() const;
-	HINT32 self() const;
+	HINT64 next() const;
+	HINT64 pre() const;
+	HINT64 self() const;
 	HUINT64 get_time_stamp() const;
 	HINT32 get_expire_minutes() const;
 private:
 	HUINT8	m_ucFlag;
-	HINT32	m_ulNextPtr;
-	HINT32	m_ulPrePtr;
-	HINT32	m_ulSelfPtr;
+	HINT64	m_llNextPtr;
+	HINT64	m_llPrePtr;
+	HINT64	m_llSelfPtr;
 	string	m_strKey;
 	string	m_strValue;
 	HBOOL	m_bValid;

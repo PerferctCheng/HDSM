@@ -39,7 +39,7 @@ public:
 	void wait_for_send_respond_right();
 	void ret_send_respond_right();
 public:
-	HCHAR			m_szReadBuffer[Global::DEFAULT_BUFFER_SIZE_1K];
+	HCHAR			m_szReadBuffer[Global::DEFAULT_TEMP_BUFFER_SIZE];
 	HUINT32	m_ulReadOffset;
 private:
 	BaseSocket		m_sock;

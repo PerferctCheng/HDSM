@@ -1,6 +1,7 @@
 #ifdef WIN32
 #include <WinSock2.h>  
 #endif
+#include <string.h>
 #include "OplogManager.h"
 #include "Utils.h"
 #include "../Global.h"
@@ -24,7 +25,6 @@ OplogManager::OplogManager(void)
 
 	m_ulTotalWrittenOps = 0;
 	m_ulWrittenOps = 0;
-	m_pCurLogFile = NULL;
 
 	load_write_index();
 	load_read_index();
@@ -38,14 +38,14 @@ OplogManager::~OplogManager(void)
 {
 	m_Notifier.awake();
 
-	if (m_pCurLogFile != NULL)
-		fclose(m_pCurLogFile);
+	if (m_fsCurLogFile.is_open())
+		m_fsCurLogFile.close();
 	
-	if (m_pWriteIndexFile != NULL)
-		fclose(m_pWriteIndexFile);
+	if (m_fsWriteIndexFile.is_open())
+		m_fsWriteIndexFile.close();
 
-	if (m_pReadIndexFile != NULL)
-		fclose(m_pReadIndexFile);
+	if (m_fsReadIndexFile.is_open())
+		m_fsReadIndexFile.close();
 
 	if (m_pWriteThread != NULL)
 	{
@@ -136,7 +136,7 @@ HBOOL OplogManager::enter_write_loop()
 	if (str.length() > 0)
 	{
 		m_lock_for_log_file.lock();
-		if (m_pCurLogFile == NULL || m_ulWrittenOps >= m_uiMaxSyncOps)
+		if (!m_fsCurLogFile.is_open() || m_ulWrittenOps >= m_uiMaxSyncOps)
 		{
 			if (!open_new_file())
 			{
@@ -144,10 +144,10 @@ HBOOL OplogManager::enter_write_loop()
 			}
 		}
 
-		if (m_pCurLogFile != NULL)
+		if (m_fsCurLogFile.is_open())
 		{
-			fwrite(str.c_str(), str.size(), 1, m_pCurLogFile);
-			fflush(m_pCurLogFile);
+			m_fsCurLogFile.write(str.c_str(), str.size());
+			m_fsCurLogFile.flush();
 			m_ulWrittenOps++;
 			m_ulTotalWrittenOps++;
 		}
@@ -160,16 +160,17 @@ HBOOL OplogManager::enter_write_loop()
 HBOOL OplogManager::open_new_file()
 {
 	HBOOL ret = false;
-	if (m_pCurLogFile != NULL)
+	if (m_fsCurLogFile.is_open())
 	{
 		Logger::log_d("[%d] oplogs in No.%I64d opl file!", m_ulWrittenOps, m_ullCurWriteIndex);
-		fclose(m_pCurLogFile);
+		m_fsCurLogFile.close();
 		m_ullCurWriteIndex++;
 	}
 	
 	m_strCurOPLogFile = m_strOPLogPath + "/" + std::to_string(m_ullCurWriteIndex) + ".opl";
-	m_pCurLogFile = fopen(m_strCurOPLogFile.c_str(), "wb");
-	if (m_pCurLogFile != NULL)
+
+	Utils::open_file(m_fsCurLogFile, m_strCurOPLogFile);
+	if (m_fsCurLogFile.is_open())
 	{
 		m_ulWrittenOps = 0;
 		update_write_index();
@@ -185,14 +186,22 @@ string OplogManager::load_file(HUINT64 index)
 	string strFile = m_strOPLogPath + "/" + std::to_string(index) + ".opl";
 	if (Utils::file_exist(strFile))
 	{
-		FILE *fp = fopen(strFile.c_str(), "rb");
-		if (fp != NULL)
+		fstream fs;
+		Utils::open_file(fs, strFile);
+		if (fs.is_open())
 		{
-			HCHAR szBuf[Global::DEFAULT_BUFFER_SIZE_1K] = {0};
-			HUINT32 read = 0;
-			while ((read = fread(szBuf, 1, Global::DEFAULT_BUFFER_SIZE_1K, fp)) > 0)
+			HCHAR szBuf[Global::DEFAULT_TEMP_BUFFER_SIZE] = {0};
+			HINT32 read = 0;
+			while (true)
+			{
+				fs.read(szBuf, Global::DEFAULT_TEMP_BUFFER_SIZE);
+				read = fs.gcount();
+				if (read <= 0)
+					break;
 				str.append(szBuf, read);
-			fclose(fp);
+				memset(szBuf, 0, Global::DEFAULT_TEMP_BUFFER_SIZE);
+			}
+			fs.close();
 		}
 	}
 	return str;
@@ -242,11 +251,10 @@ HUINT64 OplogManager::sync(string &str)
 		if (m_ulWrittenOps > 0 && Utils::get_tick_count()-m_ulLastOpenFileMoment > m_uiMinSyncPeriod)
 		{
 			m_lock_for_log_file.lock();
-			if (m_pCurLogFile != NULL)
+			if (m_fsCurLogFile.is_open())
 			{
 				Logger::log_d("[%d] oplogs in No.%I64d opl file!", m_ulWrittenOps, m_ullCurWriteIndex);
-				fclose(m_pCurLogFile);
-				m_pCurLogFile = NULL;
+				m_fsCurLogFile.close();
 				m_ullCurWriteIndex++;
 				m_ulWrittenOps = 0;
 			}
@@ -290,18 +298,18 @@ HBOOL OplogManager::load_write_index()
 	m_ullCurWriteIndex = FRIST_INDEX;
 	if (Utils::file_exist(strFile))
 	{
-		m_pWriteIndexFile = fopen(strFile.c_str(), "rb+");
-		if (m_pWriteIndexFile != NULL)
+		Utils::open_file(m_fsWriteIndexFile, strFile);
+		if (m_fsWriteIndexFile.is_open())
 		{
-			fread(&m_ullCurWriteIndex, sizeof(HUINT64), 1, m_pWriteIndexFile);
+			m_fsWriteIndexFile.write((const HCHAR*)&m_ullCurWriteIndex, sizeof(m_ullCurWriteIndex));
 			m_ullCurWriteIndex++;
 			return true;
 		}
 	}
 	else
 	{
-		m_pWriteIndexFile = fopen(strFile.c_str(), "wb+");
-		if (m_pWriteIndexFile != NULL)
+		Utils::open_file(m_fsWriteIndexFile, strFile);
+		if (m_fsWriteIndexFile.is_open())
 			return true;
 	}
 
@@ -315,18 +323,18 @@ HBOOL OplogManager::load_read_index()
 	m_ullCurReadIndex = FRIST_INDEX;
 	if (Utils::file_exist(strFile))
 	{
-		m_pReadIndexFile = fopen(strFile.c_str(), "rb+");
-		if (m_pReadIndexFile != NULL)
+		Utils::open_file(m_fsReadIndexFile, strFile);
+		if (m_fsReadIndexFile.is_open())
 		{
-			fread(&m_ullCurReadIndex, sizeof(HUINT64), 1, m_pReadIndexFile);
+			m_fsReadIndexFile.read((HCHAR *)&m_ullCurReadIndex, sizeof(m_ullCurReadIndex));
 			m_ullCurReadIndex++;
 			return true;
 		}
 	}
 	else
 	{
-		m_pReadIndexFile = fopen(strFile.c_str(), "wb+");
-		if (m_pReadIndexFile != NULL)
+		Utils::open_file(m_fsReadIndexFile, strFile);
+		if (m_fsReadIndexFile.is_open())
 			return true;
 	}
 
@@ -336,11 +344,12 @@ HBOOL OplogManager::load_read_index()
 HBOOL OplogManager::update_write_index()
 {
 	HBOOL ret = false;
-	if (m_pWriteIndexFile != NULL)
+	if (m_fsWriteIndexFile.is_open())
 	{
-		fseek(m_pWriteIndexFile, 0, SEEK_SET);
-		fwrite(&m_ullCurWriteIndex, sizeof(HUINT64), 1, m_pWriteIndexFile);
-		fflush(m_pWriteIndexFile);
+		m_fsWriteIndexFile.seekg(0, ios::beg);
+		m_fsWriteIndexFile.seekp(0, ios::beg);
+		m_fsWriteIndexFile.write((const HCHAR*)&m_ullCurWriteIndex, sizeof(m_ullCurWriteIndex));
+		m_fsWriteIndexFile.flush();
 		ret = true;
 	}
 	return ret;
@@ -349,11 +358,12 @@ HBOOL OplogManager::update_write_index()
 HBOOL OplogManager::update_read_index(HUINT64 index)
 {
 	HBOOL ret = false;
-	if (m_pReadIndexFile != NULL)
+	if (m_fsReadIndexFile.is_open())
 	{
-		fseek(m_pReadIndexFile, 0, SEEK_SET);
-		fwrite(&index, sizeof(HUINT64), 1, m_pReadIndexFile);
-		fflush(m_pReadIndexFile);
+		m_fsReadIndexFile.seekg(0, ios::beg);
+		m_fsReadIndexFile.seekp(0, ios::beg);
+		m_fsReadIndexFile.write((const HCHAR *)&index, sizeof(index));
+		m_fsReadIndexFile.flush();
 		ret = true;
 	}
 	return ret;

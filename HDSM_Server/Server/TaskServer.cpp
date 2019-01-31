@@ -69,7 +69,7 @@ void TaskServer::reset_all_fd_set()
 	{
 		Connection *pConn = m_ClientConns[i];
 
-		if (pConn->m_ulReadOffset < Global::DEFAULT_BUFFER_SIZE_1K)
+		if (pConn->m_ulReadOffset < Global::DEFAULT_TEMP_BUFFER_SIZE)
 			FD_SET((SOCKET)pConn->get_sock(), &m_fdRead);
 	}
 
@@ -254,7 +254,7 @@ HBOOL TaskServer::read_bytes(Connection *pConn)
 		return false;
 
 	HINT32 nRet = pConn->get_sock().recv(pConn->m_szReadBuffer + pConn->m_ulReadOffset, 
-								Global::DEFAULT_BUFFER_SIZE_1K-pConn->m_ulReadOffset, 
+								Global::DEFAULT_TEMP_BUFFER_SIZE-pConn->m_ulReadOffset, 
 								0);
 
 	if (nRet > 0)
@@ -376,7 +376,7 @@ void TaskServer::handle_task(Connection *pConn)
 						m_pTaskCenter->push_task(task);
 					}
 					offset += ulBufLen;
-					memmove(pConn->m_szReadBuffer, &pConn->m_szReadBuffer[offset], Global::DEFAULT_BUFFER_SIZE_1K-offset);
+					memmove(pConn->m_szReadBuffer, &pConn->m_szReadBuffer[offset], Global::DEFAULT_TEMP_BUFFER_SIZE-offset);
 					pConn->m_ulReadOffset -= offset;	
 				}
 				else

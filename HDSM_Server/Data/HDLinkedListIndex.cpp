@@ -18,7 +18,7 @@ HDLIST_INDEX_LEVEL HDLinkedListIndex::get_top_level()
 	return m_bEnableHighLevelIndex ? Level_5 : Level_4;
 }
 
-void HDLinkedListIndex::update(map<string, interval> &m, HUINT32 level, const string &k, HINT32 offset, HBOOL init)
+void HDLinkedListIndex::update(map<string, interval> &m, HUINT32 level, const string &k, HINT64 offset, HBOOL init)
 {
 	if (m_pList == NULL)
 		return;
@@ -34,24 +34,24 @@ void HDLinkedListIndex::update(map<string, interval> &m, HUINT32 level, const st
 		map<string, interval>::iterator it = m.find(key);
 		if (!init)
 		{
-			HDLinkedListNode node1 = m_pList->get_node((*it).second.lStartOffset);
+			HDLinkedListNode node1 = m_pList->get_node((*it).second.llStartOffset);
 			if (node1.is_valid() && node1.key().compare(k) > 0)
-				(*it).second.lStartOffset = offset;
+				(*it).second.llStartOffset = offset;
 
-			HDLinkedListNode node2 = m_pList->get_node((*it).second.lEndOffset);
+			HDLinkedListNode node2 = m_pList->get_node((*it).second.llEndOffset);
 			if (node2.is_valid() && node2.key().compare(k) < 0)
-				(*it).second.lEndOffset = offset;
+				(*it).second.llEndOffset = offset;
 		}
 		else
 		{
-			(*it).second.lEndOffset = offset;
+			(*it).second.llEndOffset = offset;
 		}
 	}
 
 	return;
 }
 
-void HDLinkedListIndex::insert(const string &k, HINT32 offset, HBOOL init/* = false*/)
+void HDLinkedListIndex::insert(const string &k, HINT64 offset, HBOOL init/* = false*/)
 {
 	update(m_Intervals1, Level_1, k, offset, init);
 	update(m_Intervals2, Level_2, k, offset, init);
@@ -62,7 +62,7 @@ void HDLinkedListIndex::insert(const string &k, HINT32 offset, HBOOL init/* = fa
 	return;
 }
 
-interval HDLinkedListIndex::get(const string &k, HINT32 offset, HUINT32 &level)
+interval HDLinkedListIndex::get(const string &k, HINT64 offset, HUINT32 &level)
 {
 	level = Level_None;
 	interval val;
@@ -124,7 +124,6 @@ interval HDLinkedListIndex::query(map<string, interval> &m, HUINT32 level, const
 interval HDLinkedListIndex::query(const string &k, HINT32 level)
 {
 	interval val;
-
 	if (level == Level_1)
 		val = query(m_Intervals1, Level_1, k);
 	else if (level == Level_2)
@@ -144,19 +143,20 @@ void HDLinkedListIndex::erase(map<string, interval> &m, HUINT32 level, HDLinkedL
 	string key = pNode->key().substr(0, level);
 	if (m.count(key) > 0)
 	{
-		if (m[key].lStartOffset == m[key].lEndOffset)
+		if (m[key].llStartOffset == m[key].llEndOffset)
 		{
 			m.erase(m.find(key));
 		}
 		else
 		{
-			if (pNode->self() == m[key].lStartOffset)
-				m[key].lStartOffset = pNode->next();
+			if (pNode->self() == m[key].llStartOffset)
+				m[key].llStartOffset = pNode->next();
 
-			if (pNode->self() == m[key].lEndOffset)
-				m[key].lEndOffset = pNode->pre();
+			if (pNode->self() == m[key].llEndOffset)
+				m[key].llEndOffset = pNode->pre();
 		}
 	}
+
 	return;
 }
 

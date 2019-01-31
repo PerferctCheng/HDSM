@@ -1,6 +1,7 @@
 #pragma once
-#include "SimpleLock.h"
 #include <string>
+#include <fstream>
+#include "SimpleLock.h"
 #include "TypeDefine.h"
 using namespace std;
 
@@ -24,9 +25,9 @@ public:
 public:
 	HBOOL	log(HUINT32 nlevel, const HCHAR *pszlevelstr,  const HCHAR *pInfo);
 private:
-	void	check_file_size();
+	HBOOL	check_file_size();
 private:
-	FILE		*m_fpLogFile;
+	ofstream	m_ofs;
 	SimpleLock	m_lock;
 	string		m_strLogFilePath;
 	HUINT32		m_ulMaxFileSize;

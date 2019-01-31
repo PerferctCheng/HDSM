@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <fstream>
 #include "TypeDefine.h"
 using namespace std;
 
@@ -9,11 +10,11 @@ public:
 	Utils(void){};
 	~Utils(void){};
 public:
+	static HBOOL open_file(fstream &fs, const string &filename);
 	static HBOOL delete_file(const string &filename);
 	static HBOOL rename_file(const string &oldf, const string &newf);
 	static HBOOL file_exist(const string &filename);
-	static HLONG get_file_size(const string &filename);
-	static HLONG get_file_size(FILE *fp);
+	static HINT64 get_file_size(const string &filename);
 	static HBOOL get_current_path(string &path);
 	static HBOOL get_current_path(HCHAR *path, HUINT32 len);
 	static HUINT32 get_cpu_count();

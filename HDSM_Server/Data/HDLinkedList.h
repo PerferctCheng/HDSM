@@ -3,6 +3,7 @@
 #include <map>
 #include <list>
 #include <vector>
+#include <fstream>
 #include "BufferPool.h"
 #include "HDLinkedListNode.h"
 #include "HDLinkedListIndex.h"
@@ -34,7 +35,7 @@ public:
 	HBOOL is_valid();
 	HUINT32 invalid_length();
 	HBOOL init();
-	virtual HDLinkedListNode get_node(HINT32 offset);
+	virtual HDLinkedListNode get_node(HINT64 offset);
 	HUINT32 get_expire_cache_size();
 public:
 	vector<HUINT32> get_indexs_size();
@@ -62,9 +63,9 @@ private:
 private:
 	BufferPool *m_pBufPool;
 	string		m_strDataFile;
-	HINT32		m_lStartOffset;//-1标识无效
-	HINT32		m_lFileEndPos;
-	FILE		*m_fpDataFile;
+	HINT64		m_llStartOffset;//-1标识无效
+	HINT64		m_llFileEndPos;
+	fstream		m_fsDataFile;
 	HUINT32		m_ulVersionCode;
 	HUINT32		m_ulLength;
 	HUINT32		m_ulInvalidLength;

@@ -11,7 +11,7 @@ Connection::Connection()
 {
 	m_bCloseWait = false;
 	m_ulReadOffset = 0;
-	memset(m_szReadBuffer, 0, Global::DEFAULT_BUFFER_SIZE_1K);
+	memset(m_szReadBuffer, 0, Global::DEFAULT_TEMP_BUFFER_SIZE);
 }
 
 Connection::~Connection(void)
@@ -72,7 +72,7 @@ void Connection::disabled()
 	m_bCloseWait = false;
 	m_sock.close();
 	m_ulReadOffset = 0;
-	memset(m_szReadBuffer, 0, Global::DEFAULT_BUFFER_SIZE_1K);
+	memset(m_szReadBuffer, 0, Global::DEFAULT_TEMP_BUFFER_SIZE);
 	m_lock.unlock();
 	return;
 }
@@ -105,7 +105,7 @@ HBOOL Connection::is_close_wait()
 
 string Connection::get_peer_ip()
 {
-	HCHAR szIP[Global::DEFAULT_BUFFER_SIZE_1K] = {0};
+	HCHAR szIP[Global::DEFAULT_TEMP_BUFFER_SIZE] = {0};
 	struct sockaddr_in sa;
 	socklen_t len = sizeof(sa);
 	if (m_sock.is_valid())
